@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Carnevale · Ventas</title>
+  <title>Ferretería Carnevale · Ventas</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -391,7 +391,7 @@
 <!-- HEADER -->
 <header>
   <div class="header-top">
-    <div class="brand">Carne<span>vale</span></div>
+    <div class="brand">Ferretería Carne<span>vale</span></div>
     <div class="turno-badge" id="turnoBadge" onclick="openTurnoOverlay()">
       <div class="dot"></div>
       <span id="turnoLabel">—</span>
@@ -448,6 +448,11 @@
     <input type="date" id="fechaHistorial" onchange="cargarHistorial()"/>
   </div>
   <div id="listHistorial"><div class="empty-state"><div class="empty-icon">📅</div>Elegí una fecha para ver las ventas</div></div>
+</div>
+
+<!-- CRÉDITOS AFM -->
+<div style="text-align:center; padding: 16px 20px 8px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace;">
+  Desarrollado por <a href="https://afmsolutions.com.ar" target="_blank" rel="noopener" style="color: var(--mañana); text-decoration: none; font-weight: 600;">AFM Solutions</a>
 </div>
 
 <!-- Firebase SDK (compat) -->
