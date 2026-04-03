@@ -1,863 +1,701 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Registro de Ventas - Ferretería Carnevale</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f5f5f5;
-            min-height: 100vh;
-            padding-bottom: 80px;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
-            padding: 16px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .header-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .turno-selector {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .turno-btn {
-            flex: 1;
-            max-width: 160px;
-            padding: 12px 16px;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .turno-btn.maniana {
-            background: rgba(255, 152, 0, 0.15);
-            color: #FFB74D;
-        }
-
-        .turno-btn.maniana.active {
-            background: #FF9800;
-            color: #fff;
-            border-color: #FFB74D;
-            box-shadow: 0 0 15px rgba(255, 152, 0, 0.4);
-        }
-
-        .turno-btn.tarde {
-            background: rgba(33, 150, 243, 0.15);
-            color: #64B5F6;
-        }
-
-        .turno-btn.tarde.active {
-            background: #2196F3;
-            color: #fff;
-            border-color: #64B5F6;
-            box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
-        }
-
-        .tabs {
-            display: flex;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 120px;
-            z-index: 99;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 14px 8px;
-            border: none;
-            background: white;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab.active {
-            color: #1a1a2e;
-            border-bottom-color: #1a1a2e;
-            font-weight: 600;
-        }
-
-        .tab-icon {
-            display: block;
-            font-size: 1.3rem;
-            margin-bottom: 2px;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 16px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #444;
-            margin-bottom: 6px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #1a1a2e;
-        }
-
-        .tipo-selector {
-            display: flex;
-            gap: 10px;
-        }
-
-        .tipo-btn {
-            flex: 1;
-            padding: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-        }
-
-        .tipo-btn.tarjeta {
-            color: #1976D2;
-        }
-
-        .tipo-btn.tarjeta.active {
-            background: #E3F2FD;
-            border-color: #1976D2;
-        }
-
-        .tipo-btn.transferencia {
-            color: #388E3C;
-        }
-
-        .tipo-btn.transferencia.active {
-            background: #E8F5E9;
-            border-color: #388E3C;
-        }
-
-        .btn-guardar {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 8px;
-        }
-
-        .btn-guardar:active {
-            transform: scale(0.98);
-        }
-
-        .btn-guardar:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .success-message {
-            display: none;
-            background: #4CAF50;
-            color: white;
-            padding: 16px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 600;
-            margin-bottom: 16px;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .turno-section {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .turno-section.maniana {
-            border-left: 4px solid #FF9800;
-        }
-
-        .turno-section.tarde {
-            border-left: 4px solid #2196F3;
-        }
-
-        .turno-header {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .turno-header.maniana {
-            color: #E65100;
-        }
-
-        .turno-header.tarde {
-            color: #1565C0;
-        }
-
-        .venta-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .venta-item:last-child {
-            border-bottom: none;
-        }
-
-        .venta-info {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .venta-hora {
-            font-size: 0.85rem;
-            color: #888;
-            min-width: 45px;
-        }
-
-        .venta-tipo {
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-
-        .venta-tipo.tarjeta {
-            background: #E3F2FD;
-            color: #1976D2;
-        }
-
-        .venta-tipo.transferencia {
-            background: #E8F5E9;
-            color: #388E3C;
-        }
-
-        .venta-comprobante {
-            font-size: 0.75rem;
-            color: #999;
-            margin-left: 8px;
-        }
-
-        .venta-monto {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-
-        .subtotales {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 2px dashed #eee;
-        }
-
-        .subtotal-item {
-            text-align: center;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .subtotal-label {
-            font-size: 0.75rem;
-            color: #888;
-            margin-bottom: 4px;
-        }
-
-        .subtotal-label.tarjeta {
-            color: #1976D2;
-        }
-
-        .subtotal-label.transferencia {
-            color: #388E3C;
-        }
-
-        .subtotal-value {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .subtotal-item.total {
-            grid-column: 1 / -1;
-            background: #1a1a2e;
-        }
-
-        .subtotal-item.total .subtotal-label {
-            color: #ccc;
-        }
-
-        .subtotal-item.total .subtotal-value {
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .total-general {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            margin-top: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-
-        .total-general-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 4px;
-        }
-
-        .total-general-value {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        .date-picker-container {
-            background: white;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .date-input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-family: inherit;
-            cursor: pointer;
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: #1a1a2e;
-        }
-
-        .turno-activo-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .turno-activo-badge.maniana {
-            background: #FFF3E0;
-            color: #E65100;
-        }
-
-        .turno-activo-badge.tarde {
-            background: #E3F2FD;
-            color: #1565C0;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 30px;
-            color: #888;
-        }
-
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        .fecha-display {
-            text-align: center;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #666;
-            margin-bottom: 16px;
-        }
-
-        @media (min-width: 480px) {
-            body {
-                padding: 0;
-            }
-            .container {
-                max-width: 480px;
-                margin: 0 auto;
-                background: white;
-                min-height: 100vh;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carnevale · Ventas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0f0f11;
+      --surface: #18181c;
+      --surface2: #222228;
+      --border: #2e2e38;
+      --text: #f0f0f4;
+      --muted: #7b7b8e;
+      --mañana: #f5a623;
+      --mañana-dim: rgba(245,166,35,0.12);
+      --tarde: #6c8ef5;
+      --tarde-dim: rgba(108,142,245,0.12);
+      --tarjeta: #6c8ef5;
+      --transferencia: #3ecf8e;
+      --transferencia-dim: rgba(62,207,142,0.12);
+      --danger: #f56c6c;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 20px 20px 0;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand span { color: var(--mañana); }
+
+    /* turno badge */
+    .turno-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: 'DM Mono', monospace;
+    }
+    .turno-badge.mañana { border-color: var(--mañana); color: var(--mañana); background: var(--mañana-dim); }
+    .turno-badge.tarde  { border-color: var(--tarde);  color: var(--tarde);  background: var(--tarde-dim); }
+    .turno-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .turno-badge.mañana .dot { background: var(--mañana); }
+    .turno-badge.tarde  .dot { background: var(--tarde); }
+
+    /* tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      user-select: none;
+    }
+    .tab.active { color: var(--text); border-bottom-color: var(--mañana); }
+
+    /* ── TURNO SELECTOR MODAL ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .overlay.show { display: flex; }
+
+    .sheet {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 28px 24px 40px;
+      width: 100%;
+      max-width: 480px;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .sheet h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+    .sheet p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+    .turno-options { display: flex; flex-direction: column; gap: 12px; }
+
+    .turno-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .turno-option:hover { border-color: var(--muted); }
+    .turno-option.mañana:hover, .turno-option.mañana.selected { border-color: var(--mañana); background: var(--mañana-dim); }
+    .turno-option.tarde:hover,  .turno-option.tarde.selected  { border-color: var(--tarde);  background: var(--tarde-dim);  }
+
+    .turno-icon { font-size: 28px; }
+    .turno-label { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+    .turno-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── SECTIONS ── */
+    .section { display: none; padding: 20px; }
+    .section.active { display: block; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+
+    input[type="number"], input[type="text"], input[type="date"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 18px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      outline: none;
+      transition: border-color .2s;
+      -webkit-appearance: none;
+    }
+    input:focus { border-color: var(--mañana); }
+
+    /* tipo buttons */
+    .tipo-btns { display: flex; gap: 10px; }
+    .tipo-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tipo-btn.tarjeta.selected    { border-color: var(--tarjeta);      color: var(--tarjeta);      background: rgba(108,142,245,.12); }
+    .tipo-btn.transferencia.selected { border-color: var(--transferencia); color: var(--transferencia); background: var(--transferencia-dim); }
+
+    /* submit */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: var(--mañana);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 8px;
+    }
+    .btn-primary:active { transform: scale(.98); opacity: .9; }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--transferencia);
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 300;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── VENTAS LIST ── */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .section-date {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 20px;
+    }
+
+    .turno-block { margin-bottom: 28px; }
+
+    .turno-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .turno-pill {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .turno-pill.mañana { background: var(--mañana-dim); color: var(--mañana); }
+    .turno-pill.tarde  { background: var(--tarde-dim);  color: var(--tarde);  }
+
+    .venta-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: fadeIn .2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .venta-left { display: flex; flex-direction: column; gap: 3px; }
+    .venta-tipo {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+    .venta-tipo.tarjeta      { color: var(--tarjeta); }
+    .venta-tipo.transferencia { color: var(--transferencia); }
+
+    .venta-hora { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .venta-comprobante { font-size: 11px; color: var(--muted); }
+
+    .venta-monto {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* totales */
+    .totales-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 8px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .total-row .label { color: var(--muted); }
+    .total-row .value { font-family: 'DM Mono', monospace; font-weight: 500; }
+    .total-row.grand {
+      border-top: 1px solid var(--border);
+      margin-top: 6px;
+      padding-top: 12px;
+    }
+    .total-row.grand .label { font-weight: 700; color: var(--text); font-size: 15px; }
+    .total-row.grand .value { font-size: 18px; color: var(--mañana); }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    .total-general-box {
+      background: var(--surface2);
+      border: 2px solid var(--mañana);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .total-general-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .total-general-value { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: var(--mañana); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+    /* date picker */
+    .date-picker-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .date-picker-row input { flex: 1; font-size: 15px; padding: 12px 14px; }
+
+    /* loader */
+    .loader { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
+
+    /* ── NAV ── (replaced by tabs above header) */
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-title">Ferretería Carnevale</div>
-        <div class="turno-selector">
-            <button class="turno-btn maniana" id="btn-maniana" onclick="setTurno('maniana')">
-                <span>🌅</span> Mañana
-            </button>
-            <button class="turno-btn tarde" id="btn-tarde" onclick="setTurno('tarde')">
-                <span>🌆</span> Tarde
-            </button>
+
+<!-- TURNO OVERLAY -->
+<div class="overlay" id="turnoOverlay">
+  <div class="sheet">
+    <h2>Seleccionar turno</h2>
+    <p>¿En qué turno estás trabajando?</p>
+    <div class="turno-options">
+      <div class="turno-option mañana" onclick="setTurno('mañana')">
+        <div class="turno-icon">🌅</div>
+        <div>
+          <div class="turno-label">Turno Mañana</div>
+          <div class="turno-sub">Apertura → mediodía</div>
         </div>
+      </div>
+      <div class="turno-option tarde" onclick="setTurno('tarde')">
+        <div class="turno-icon">🌆</div>
+        <div>
+          <div class="turno-label">Turno Tarde</div>
+          <div class="turno-sub">Mediodía → cierre</div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="tabs">
-        <button class="tab active" id="tab-btn-cargar" onclick="showTab('cargar')">
-            <span class="tab-icon">💰</span>
-            Cargar
-        </button>
-        <button class="tab" id="tab-btn-hoy" onclick="showTab('hoy')">
-            <span class="tab-icon">📅</span>
-            Hoy
-        </button>
-        <button class="tab" id="tab-btn-historial" onclick="showTab('historial')">
-            <span class="tab-icon">📊</span>
-            Historial
-        </button>
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Venta guardada</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div class="brand">Carne<span>vale</span></div>
+    <div class="turno-badge" id="turnoBadge" onclick="openTurnoOverlay()">
+      <div class="dot"></div>
+      <span id="turnoLabel">—</span>
     </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('cargar')">➕ Cargar</div>
+    <div class="tab" onclick="showTab('hoy')">📋 Hoy</div>
+    <div class="tab" onclick="showTab('historial')">📊 Historial</div>
+  </div>
+</header>
 
-    <div class="tab-content active" id="tab-cargar">
-        <div id="success-message" class="success-message">
-            ✓ Venta registrada exitosamente
-        </div>
+<!-- CARGAR VENTA -->
+<div class="section active" id="sec-cargar">
+  <br>
+  <div class="section-title">Nueva venta</div>
+  <p class="section-date" id="fechaHoy"></p>
 
-        <div class="turno-activo-badge" id="turno-badge">
-            Turno actual: Mañana
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Monto *</label>
-            <input type="number" id="monto" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Tipo de pago *</label>
-            <div class="tipo-selector">
-                <button type="button" class="tipo-btn tarjeta active" id="btn-tarjeta" onclick="setTipo('tarjeta')">
-                    💳 Tarjeta
-                </button>
-                <button type="button" class="tipo-btn transferencia" id="btn-transferencia" onclick="setTipo('transferencia')">
-                    📱 Transferencia
-                </button>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">N° Comprobante (opcional)</label>
-            <input type="text" id="comprobante" class="form-input" placeholder="Ej: 00123">
-        </div>
-
-        <button class="btn-guardar" id="btn-guardar" onclick="guardarVenta()">
-            Guardar Venta
-        </button>
+  <div class="form-group">
+    <label>Tipo de pago</label>
+    <div class="tipo-btns">
+      <button class="tipo-btn tarjeta selected" id="btn-tarjeta" onclick="selectTipo('tarjeta')">💳 Tarjeta</button>
+      <button class="tipo-btn transferencia" id="btn-transferencia" onclick="selectTipo('transferencia')">📲 Transferencia</button>
     </div>
+  </div>
 
-    <div class="tab-content" id="tab-hoy">
-        <div class="fecha-display" id="fecha-hoy"></div>
-        <div class="loading" id="loading-hoy">Cargando ventas...</div>
-        <div id="ventas-hoy-content"></div>
-    </div>
+  <div class="form-group">
+    <label>Monto ($)</label>
+    <input type="number" id="monto" placeholder="0.00" step="0.01" min="0" inputmode="decimal"/>
+  </div>
 
-    <div class="tab-content" id="tab-historial">
-        <div class="date-picker-container">
-            <input type="date" id="fecha-historial" class="date-input" onchange="cargarHistorial()">
-        </div>
-        <div id="historial-content"></div>
-    </div>
+  <div class="form-group">
+    <label>N° Comprobante <span style="color:var(--muted);font-weight:400;text-transform:none">(opcional)</span></label>
+    <input type="text" id="comprobante" placeholder="ej: 00012345" inputmode="numeric"/>
+  </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  <button class="btn-primary" onclick="guardarVenta()" id="btnGuardar">Guardar venta</button>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDFVZ99Hqs9xvfJPmyxARaX8ZlndF5fpMM",
-            authDomain: "ferreteriacarnevale-918a0.firebaseapp.com",
-            projectId: "ferreteriacarnevale-918a0",
-            storageBucket: "ferreteriacarnevale-918a0.firebasestorage.app",
-            messagingSenderId: "254608423500",
-            appId: "1:254608423500:web:568b03c037bf25f64912e9",
-            measurementId: "G-BNHNFVD3H9"
-        };
+<!-- HOY -->
+<div class="section" id="sec-hoy">
+  <br>
+  <div class="section-title">Ventas de hoy</div>
+  <p class="section-date" id="fechaHoyLabel"></p>
+  <div id="listHoy"><div class="loader">Cargando...</div></div>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<!-- HISTORIAL -->
+<div class="section" id="sec-historial">
+  <br>
+  <div class="section-title">Historial</div>
+  <div class="date-picker-row">
+    <input type="date" id="fechaHistorial" onchange="cargarHistorial()"/>
+  </div>
+  <div id="listHistorial"><div class="empty-state"><div class="empty-icon">📅</div>Elegí una fecha para ver las ventas</div></div>
+</div>
 
-        let turnoActual = localStorage.getItem('turno') || null;
-        let tipoActual = 'tarjeta';
-        let unsubHoy = null;
-        let unsubHistorial = null;
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-        function formatFecha(fecha) {
-            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', opciones);
-        }
+<script>
+// ══════════════════════════════════════════
+//  FIREBASE CONFIG — reemplazá estos valores
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDFVZ99Hqs9xvfJPmyxARaX8ZlndF5fpMM",
+  authDomain: "ferreteriacarnevale-918a0.firebaseapp.com",
+  projectId: "ferreteriacarnevale-918a0",
+  storageBucket: "ferreteriacarnevale-918a0.firebasestorage.app",
+  messagingSenderId: "254608423500",
+  appId: "1:254608423500:web:568b03c037bf25f64912e9",
+  measurementId: "G-BNHNFVD3H9"
+};
+// ══════════════════════════════════════════
 
-        function formatCurrency(num) {
-            return '$' + num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-        function formatTime(timestamp) {
-            if (!timestamp) return '--:--';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-        }
+// ── STATE ──
+let turnoActivo = localStorage.getItem('turno') || null;
+let tipoSeleccionado = 'tarjeta';
+let unsubHoy = null;
 
-        function calcularSubtotales(ventas) {
-            let tarjeta = 0;
-            let transferencia = 0;
-            ventas.forEach(v => {
-                if (v.tipo === 'tarjeta') tarjeta += v.monto;
-                else transferencia += v.monto;
-            });
-            return { tarjeta, transferencia, total: tarjeta + transferencia };
-        }
+// ── INIT ──
+function init() {
+  const hoy = fechaHoy();
+  document.getElementById('fechaHoy').textContent = formatFechaLarga(hoy);
+  document.getElementById('fechaHoyLabel').textContent = formatFechaLarga(hoy);
+  document.getElementById('fechaHistorial').value = hoy;
 
-        function renderVentas(ventas, containerId, tituloFecha) {
-            const container = document.getElementById(containerId);
-            
-            const maniana = ventas.filter(v => v.turno === 'maniana');
-            const tarde = ventas.filter(v => v.turno === 'tarde');
+  if (!turnoActivo) {
+    openTurnoOverlay();
+  } else {
+    updateTurnoBadge();
+  }
 
-            let html = '';
+  // realtime hoy
+  suscribirHoy();
+}
 
-            if (tituloFecha) {
-                html += `<div class="fecha-display">${formatFecha(tituloFecha)}</div>`;
-            }
+// ── FECHAS ──
+function fechaHoy() {
+  return new Date().toISOString().split('T')[0];
+}
+function formatFechaLarga(str) {
+  const [y,m,d] = str.split('-');
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+}
+function formatHora(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
 
-            if (maniana.length === 0 && tarde.length === 0) {
-                container.innerHTML = html + `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <p>No hay ventas registradas</p>
-                    </div>
-                `;
-                return;
-            }
+// ── TURNO ──
+function openTurnoOverlay() {
+  document.getElementById('turnoOverlay').classList.add('show');
+}
+function setTurno(t) {
+  turnoActivo = t;
+  localStorage.setItem('turno', t);
+  updateTurnoBadge();
+  document.getElementById('turnoOverlay').classList.remove('show');
+}
+function updateTurnoBadge() {
+  const badge = document.getElementById('turnoBadge');
+  const label = document.getElementById('turnoLabel');
+  badge.className = 'turno-badge ' + turnoActivo;
+  label.textContent = turnoActivo === 'mañana' ? '☀️ Mañana' : '🌆 Tarde';
+}
 
-            const subManiana = calcularSubtotales(maniana);
-            const subTarde = calcularSubtotales(tarde);
-            const totalGeneral = subManiana.total + subTarde.total;
+// ── TABS ──
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  const idx = ['cargar','hoy','historial'].indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
 
-            if (maniana.length > 0) {
-                html += `
-                    <div class="turno-section maniana">
-                        <div class="turno-header maniana">
-                            <span>🌅 Turno Mañana</span>
-                            <span>${maniana.length} venta${maniana.length !== 1 ? 's' : ''}</span>
-                        </div>
-                        ${maniana.map(v => `
-                            <div class="venta-item">
-                                <div class="venta-info">
-                                    <span class="venta-hora">${formatTime(v.timestamp)}</span>
-                                    <span class="venta-tipo ${v.tipo}">${v.tipo === 'tarjeta' ? '💳' : '📱'} ${v.tipo}</span>
-                                    ${v.comprobante ? `<span class="venta-comprobante">#${v.comprobante}</span>` : ''}
-                                </div>
-                                <span class="venta-monto">${formatCurrency(v.monto)}</span>
-                            </div>
-                        `).join('')}
-                        <div class="subtotales">
-                            <div class="subtotal-item">
-                                <div class="subtotal-label tarjeta">💳 Tarjeta</div>
-                                <div class="subtotal-value">${formatCurrency(subManiana.tarjeta)}</div>
-                            </div>
-                            <div class="subtotal-item">
-                                <div class="subtotal-label transferencia">📱 Transferencia</div>
-                                <div class="subtotal-value">${formatCurrency(subManiana.transferencia)}</div>
-                            </div>
-                            <div class="subtotal-item total">
-                                <div class="subtotal-label">Total Mañana</div>
-                                <div class="subtotal-value">${formatCurrency(subManiana.total)}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+  if (name === 'historial') cargarHistorial();
+}
 
-            if (tarde.length > 0) {
-                html += `
-                    <div class="turno-section tarde">
-                        <div class="turno-header tarde">
-                            <span>🌆 Turno Tarde</span>
-                            <span>${tarde.length} venta${tarde.length !== 1 ? 's' : ''}</span>
-                        </div>
-                        ${tarde.map(v => `
-                            <div class="venta-item">
-                                <div class="venta-info">
-                                    <span class="venta-hora">${formatTime(v.timestamp)}</span>
-                                    <span class="venta-tipo ${v.tipo}">${v.tipo === 'tarjeta' ? '💳' : '📱'} ${v.tipo}</span>
-                                    ${v.comprobante ? `<span class="venta-comprobante">#${v.comprobante}</span>` : ''}
-                                </div>
-                                <span class="venta-monto">${formatCurrency(v.monto)}</span>
-                            </div>
-                        `).join('')}
-                        <div class="subtotales">
-                            <div class="subtotal-item">
-                                <div class="subtotal-label tarjeta">💳 Tarjeta</div>
-                                <div class="subtotal-value">${formatCurrency(subTarde.tarjeta)}</div>
-                            </div>
-                            <div class="subtotal-item">
-                                <div class="subtotal-label transferencia">📱 Transferencia</div>
-                                <div class="subtotal-value">${formatCurrency(subTarde.transferencia)}</div>
-                            </div>
-                            <div class="subtotal-item total">
-                                <div class="subtotal-label">Total Tarde</div>
-                                <div class="subtotal-value">${formatCurrency(subTarde.total)}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+// ── TIPO ──
+function selectTipo(t) {
+  tipoSeleccionado = t;
+  document.getElementById('btn-tarjeta').classList.toggle('selected', t === 'tarjeta');
+  document.getElementById('btn-transferencia').classList.toggle('selected', t === 'transferencia');
+}
 
-            html += `
-                <div class="total-general">
-                    <div class="total-general-label">TOTAL DEL DÍA</div>
-                    <div class="total-general-value">${formatCurrency(totalGeneral)}</div>
-                </div>
-            `;
+// ── GUARDAR ──
+async function guardarVenta() {
+  const monto = parseFloat(document.getElementById('monto').value);
+  const comprobante = document.getElementById('comprobante').value.trim();
 
-            container.innerHTML = html;
-        }
+  if (!monto || monto <= 0) {
+    document.getElementById('monto').focus();
+    return;
+  }
+  if (!turnoActivo) { openTurnoOverlay(); return; }
 
-        window.setTurno = function(turno) {
-            turnoActual = turno;
-            localStorage.setItem('turno', turno);
-            actualizarUI();
-        };
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
 
-        function actualizarUI() {
-            document.getElementById('btn-maniana').classList.toggle('active', turnoActual === 'maniana');
-            document.getElementById('btn-tarde').classList.toggle('active', turnoActual === 'tarde');
+  try {
+    await db.collection('ventas').add({
+      fecha: fechaHoy(),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      turno: turnoActivo,
+      tipo: tipoSeleccionado,
+      monto: monto,
+      comprobante: comprobante || ''
+    });
 
-            const badge = document.getElementById('turno-badge');
-            badge.className = `turno-activo-badge ${turnoActual}`;
-            badge.innerHTML = turnoActual === 'maniana' 
-                ? '<span>🌅</span> Turno actual: Mañana'
-                : '<span>🌆</span> Turno actual: Tarde';
-        }
+    document.getElementById('monto').value = '';
+    document.getElementById('comprobante').value = '';
+    showToast();
+  } catch(e) {
+    alert('Error al guardar: ' + e.message);
+  }
 
-        window.setTipo = function(tipo) {
-            tipoActual = tipo;
-            document.getElementById('btn-tarjeta').classList.toggle('active', tipo === 'tarjeta');
-            document.getElementById('btn-transferencia').classList.toggle('active', tipo === 'transferencia');
-        };
+  btn.disabled = false;
+  btn.textContent = 'Guardar venta';
+}
 
-        window.guardarVenta = async function() {
-            const montoInput = document.getElementById('monto');
-            const comprobanteInput = document.getElementById('comprobante');
-            const monto = parseFloat(montoInput.value);
+// ── TOAST ──
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 
-            if (!monto || monto <= 0) {
-                montoInput.focus();
-                montoInput.style.borderColor = '#c62828';
-                setTimeout(() => montoInput.style.borderColor = '', 2000);
-                return;
-            }
-
-            const btn = document.getElementById('btn-guardar');
-            btn.disabled = true;
-            btn.textContent = 'Guardando...';
-
-            try {
-                const fecha = new Date().toISOString().split('T')[0];
-                
-                await addDoc(collection(db, 'ventas'), {
-                    fecha: fecha,
-                    timestamp: serverTimestamp(),
-                    turno: turnoActual,
-                    tipo: tipoActual,
-                    monto: monto,
-                    comprobante: comprobanteInput.value.trim()
-                });
-
-                montoInput.value = '';
-                comprobanteInput.value = '';
-                
-                const successMsg = document.getElementById('success-message');
-                successMsg.style.display = 'block';
-                setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 3000);
-
-            } catch (error) {
-                console.error('Error al guardar:', error);
-                alert('Error al guardar la venta. Intenta de nuevo.');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Guardar Venta';
-            }
-        };
-
-        function escucharVentasHoy() {
-            if (unsubHoy) unsubHoy();
-
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha-hoy').textContent = formatFecha(hoy);
-            
-            const q = query(collection(db, 'ventas'), where('fecha', '==', hoy));
-
-            unsubHoy = onSnapshot(q, (snapshot) => {
-                document.getElementById('loading-hoy').style.display = 'none';
-                const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderVentas(ventas, 'ventas-hoy-content', null);
-            }, (error) => {
-                console.error('Error:', error);
-                document.getElementById('loading-hoy').textContent = 'Error al cargar ventas';
-            });
-        }
-
-        window.cargarHistorial = async function() {
-            const fecha = document.getElementById('fecha-historial').value;
-            const container = document.getElementById('historial-content');
-            
-            if (!fecha) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📅</div>
-                        <p>Selecciona una fecha para ver las ventas</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = '<div class="loading">Cargando...</div>';
-
-            if (unsubHistorial) unsubHistorial();
-
-            const q = query(collection(db, 'ventas'), where('fecha', '==', fecha));
-
-            unsubHistorial = onSnapshot(q, (snapshot) => {
-                const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderVentas(ventas, 'historial-content', fecha);
-            }, (error) => {
-                console.error('Error:', error);
-                container.innerHTML = '<div class="error-message">Error al cargar el historial</div>';
-            });
-        };
-
-        window.showTab = function(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            document.getElementById(`tab-btn-${tab}`).classList.add('active');
-            document.getElementById(`tab-${tab}`).classList.add('active');
-
-            if (tab === 'hoy') {
-                document.getElementById('loading-hoy').style.display = 'block';
-                document.getElementById('ventas-hoy-content').innerHTML = '';
-                escucharVentasHoy();
-            } else if (tab === 'historial') {
-                const fechaInput = document.getElementById('fecha-historial');
-                if (!fechaInput.value) {
-                    fechaInput.valueAsDate = new Date();
-                    cargarHistorial();
-                }
-            }
-        };
-
-        window.addEventListener('DOMContentLoaded', () => {
-            if (!turnoActual) {
-                turnoActual = 'maniana';
-                localStorage.setItem('turno', turnoActual);
-            }
-            actualizarUI();
-            escucharVentasHoy();
-            document.getElementById('fecha-historial').valueAsDate = new Date();
+// ── SUSCRIBIR HOY (realtime) ──
+function suscribirHoy() {
+  if (unsubHoy) unsubHoy();
+  unsubHoy = db.collection('ventas')
+    .where('fecha', '==', fechaHoy())
+    .orderBy('timestamp', 'asc')
+    .onSnapshot(snap => {
+      const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      renderVentas(ventas, 'listHoy');
+    }, err => {
+      // índice no creado aún
+      db.collection('ventas')
+        .where('fecha', '==', fechaHoy())
+        .get().then(snap => {
+          const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
+          renderVentas(ventas, 'listHoy');
         });
-    </script>
+    });
+}
+
+// ── CARGAR HISTORIAL ──
+async function cargarHistorial() {
+  const fecha = document.getElementById('fechaHistorial').value;
+  if (!fecha) return;
+  document.getElementById('listHistorial').innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const snap = await db.collection('ventas')
+      .where('fecha', '==', fecha)
+      .orderBy('timestamp', 'asc')
+      .get();
+    const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderVentas(ventas, 'listHistorial', fecha);
+  } catch(e) {
+    // fallback sin orderBy
+    const snap = await db.collection('ventas').where('fecha', '==', fecha).get();
+    const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderVentas(ventas, 'listHistorial', fecha);
+  }
+}
+
+// ── RENDER ──
+function renderVentas(ventas, containerId, fechaLabel) {
+  const el = document.getElementById(containerId);
+
+  if (ventas.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🗒️</div>No hay ventas registradas</div>`;
+    return;
+  }
+
+  const mañana = ventas.filter(v => v.turno === 'mañana');
+  const tarde   = ventas.filter(v => v.turno === 'tarde');
+
+  let html = '';
+
+  if (mañana.length > 0) html += renderTurnoBlock(mañana, 'mañana');
+  if (tarde.length > 0)  html += renderTurnoBlock(tarde,  'tarde');
+
+  // total general
+  const totalGen = ventas.reduce((s, v) => s + (v.monto || 0), 0);
+  html += `
+    <div class="total-general-box">
+      <div class="total-general-label">Total del día</div>
+      <div class="total-general-value">${formatMonto(totalGen)}</div>
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+function renderTurnoBlock(ventas, turno) {
+  const emoji = turno === 'mañana' ? '🌅' : '🌆';
+  const label = turno === 'mañana' ? 'Turno Mañana' : 'Turno Tarde';
+
+  const totalTarjeta = ventas.filter(v=>v.tipo==='tarjeta').reduce((s,v)=>s+v.monto,0);
+  const totalTransf  = ventas.filter(v=>v.tipo==='transferencia').reduce((s,v)=>s+v.monto,0);
+  const totalTurno   = totalTarjeta + totalTransf;
+
+  let cards = ventas.map(v => `
+    <div class="venta-card">
+      <div class="venta-left">
+        <span class="venta-tipo ${v.tipo}">${v.tipo === 'tarjeta' ? '💳 Tarjeta' : '📲 Transferencia'}</span>
+        <span class="venta-hora">${formatHora(v.timestamp)}</span>
+        ${v.comprobante ? `<span class="venta-comprobante">Comp. #${v.comprobante}</span>` : ''}
+      </div>
+      <div class="venta-monto">${formatMonto(v.monto)}</div>
+    </div>`).join('');
+
+  return `
+    <div class="turno-block">
+      <div class="turno-header">
+        <span class="turno-pill ${turno}">${emoji} ${label}</span>
+      </div>
+      ${cards}
+      <div class="totales-box">
+        ${totalTarjeta > 0 ? `<div class="total-row"><span class="label">💳 Tarjeta</span><span class="value" style="color:var(--tarjeta)">${formatMonto(totalTarjeta)}</span></div>` : ''}
+        ${totalTransf  > 0 ? `<div class="total-row"><span class="label">📲 Transferencia</span><span class="value" style="color:var(--transferencia)">${formatMonto(totalTransf)}</span></div>` : ''}
+        <div class="total-row grand"><span class="label">Total ${label}</span><span class="value">${formatMonto(totalTurno)}</span></div>
+      </div>
+    </div>`;
+}
+
+function formatMonto(n) {
+  return '$' + (n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// enter en monto → foco comprobante
+document.getElementById('monto').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('comprobante').focus();
+});
+document.getElementById('comprobante').addEventListener('keydown', e => {
+  if (e.key === 'Enter') guardarVenta();
+});
+
+// ── START ──
+init();
+</script>
 </body>
 </html>
