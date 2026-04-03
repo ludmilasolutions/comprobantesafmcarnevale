@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Registro de Ventas - Ferretería Carnevale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .turno-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .turno-btn {
+            flex: 1;
+            max-width: 160px;
+            padding: 12px 16px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .turno-btn.maniana {
+            background: rgba(255, 152, 0, 0.15);
+            color: #FFB74D;
+        }
+
+        .turno-btn.maniana.active {
+            background: #FF9800;
+            color: #fff;
+            border-color: #FFB74D;
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .turno-btn.tarde {
+            background: rgba(33, 150, 243, 0.15);
+            color: #64B5F6;
+        }
+
+        .turno-btn.tarde.active {
+            background: #2196F3;
+            color: #fff;
+            border-color: #64B5F6;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 120px;
+            z-index: 99;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px 8px;
+            border: none;
+            background: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #1a1a2e;
+            border-bottom-color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .tab-icon {
+            display: block;
+            font-size: 1.3rem;
+            margin-bottom: 2px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1a1a2e;
+        }
+
+        .tipo-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tipo-btn {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .tipo-btn.tarjeta {
+            color: #1976D2;
+        }
+
+        .tipo-btn.tarjeta.active {
+            background: #E3F2FD;
+            border-color: #1976D2;
+        }
+
+        .tipo-btn.transferencia {
+            color: #388E3C;
+        }
+
+        .tipo-btn.transferencia.active {
+            background: #E8F5E9;
+            border-color: #388E3C;
+        }
+
+        .btn-guardar {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-guardar:active {
+            transform: scale(0.98);
+        }
+
+        .btn-guardar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            display: none;
+            background: #4CAF50;
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 16px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .turno-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .turno-section.maniana {
+            border-left: 4px solid #FF9800;
+        }
+
+        .turno-section.tarde {
+            border-left: 4px solid #2196F3;
+        }
+
+        .turno-header {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .turno-header.maniana {
+            color: #E65100;
+        }
+
+        .turno-header.tarde {
+            color: #1565C0;
+        }
+
+        .venta-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .venta-item:last-child {
+            border-bottom: none;
+        }
+
+        .venta-info {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .venta-hora {
+            font-size: 0.85rem;
+            color: #888;
+            min-width: 45px;
+        }
+
+        .venta-tipo {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .venta-tipo.tarjeta {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .venta-tipo.transferencia {
+            background: #E8F5E9;
+            color: #388E3C;
+        }
+
+        .venta-comprobante {
+            font-size: 0.75rem;
+            color: #999;
+            margin-left: 8px;
+        }
+
+        .venta-monto {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .subtotales {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px dashed #eee;
+        }
+
+        .subtotal-item {
+            text-align: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .subtotal-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .subtotal-label.tarjeta {
+            color: #1976D2;
+        }
+
+        .subtotal-label.transferencia {
+            color: #388E3C;
+        }
+
+        .subtotal-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .subtotal-item.total {
+            grid-column: 1 / -1;
+            background: #1a1a2e;
+        }
+
+        .subtotal-item.total .subtotal-label {
+            color: #ccc;
+        }
+
+        .subtotal-item.total .subtotal-value {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .total-general {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .total-general-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .total-general-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .date-picker-container {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #1a1a2e;
+        }
+
+        .turno-activo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .turno-activo-badge.maniana {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .turno-activo-badge.tarde {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .fecha-display {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        @media (min-width: 480px) {
+            body {
+                padding: 0;
+            }
+            .container {
+                max-width: 480px;
+                margin: 0 auto;
+                background: white;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">Ferretería Carnevale</div>
+        <div class="turno-selector">
+            <button class="turno-btn maniana" id="btn-maniana" onclick="setTurno('maniana')">
+                <span>🌅</span> Mañana
+            </button>
+            <button class="turno-btn tarde" id="btn-tarde" onclick="setTurno('tarde')">
+                <span>🌆</span> Tarde
+            </button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" id="tab-btn-cargar" onclick="showTab('cargar')">
+            <span class="tab-icon">💰</span>
+            Cargar
+        </button>
+        <button class="tab" id="tab-btn-hoy" onclick="showTab('hoy')">
+            <span class="tab-icon">📅</span>
+            Hoy
+        </button>
+        <button class="tab" id="tab-btn-historial" onclick="showTab('historial')">
+            <span class="tab-icon">📊</span>
+            Historial
+        </button>
+    </div>
+
+    <div class="tab-content active" id="tab-cargar">
+        <div id="success-message" class="success-message">
+            ✓ Venta registrada exitosamente
+        </div>
+
+        <div class="turno-activo-badge" id="turno-badge">
+            Turno actual: Mañana
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Monto *</label>
+            <input type="number" id="monto" class="form-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Tipo de pago *</label>
+            <div class="tipo-selector">
+                <button type="button" class="tipo-btn tarjeta active" id="btn-tarjeta" onclick="setTipo('tarjeta')">
+                    💳 Tarjeta
+                </button>
+                <button type="button" class="tipo-btn transferencia" id="btn-transferencia" onclick="setTipo('transferencia')">
+                    📱 Transferencia
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">N° Comprobante (opcional)</label>
+            <input type="text" id="comprobante" class="form-input" placeholder="Ej: 00123">
+        </div>
+
+        <button class="btn-guardar" id="btn-guardar" onclick="guardarVenta()">
+            Guardar Venta
+        </button>
+    </div>
+
+    <div class="tab-content" id="tab-hoy">
+        <div class="fecha-display" id="fecha-hoy"></div>
+        <div class="loading" id="loading-hoy">Cargando ventas...</div>
+        <div id="ventas-hoy-content"></div>
+    </div>
+
+    <div class="tab-content" id="tab-historial">
+        <div class="date-picker-container">
+            <input type="date" id="fecha-historial" class="date-input" onchange="cargarHistorial()">
+        </div>
+        <div id="historial-content"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFVZ99Hqs9xvfJPmyxARaX8ZlndF5fpMM",
+            authDomain: "ferreteriacarnevale-918a0.firebaseapp.com",
+            projectId: "ferreteriacarnevale-918a0",
+            storageBucket: "ferreteriacarnevale-918a0.firebasestorage.app",
+            messagingSenderId: "254608423500",
+            appId: "1:254608423500:web:568b03c037bf25f64912e9",
+            measurementId: "G-BNHNFVD3H9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let turnoActual = localStorage.getItem('turno') || null;
+        let tipoActual = 'tarjeta';
+        let unsubHoy = null;
+        let unsubHistorial = null;
+
+        function formatFecha(fecha) {
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', opciones);
+        }
+
+        function formatCurrency(num) {
+            return '$' + num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '--:--';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function calcularSubtotales(ventas) {
+            let tarjeta = 0;
+            let transferencia = 0;
+            ventas.forEach(v => {
+                if (v.tipo === 'tarjeta') tarjeta += v.monto;
+                else transferencia += v.monto;
+            });
+            return { tarjeta, transferencia, total: tarjeta + transferencia };
+        }
+
+        function renderVentas(ventas, containerId, tituloFecha) {
+            const container = document.getElementById(containerId);
+            
+            const maniana = ventas.filter(v => v.turno === 'maniana');
+            const tarde = ventas.filter(v => v.turno === 'tarde');
+
+            let html = '';
+
+            if (tituloFecha) {
+                html += `<div class="fecha-display">${formatFecha(tituloFecha)}</div>`;
+            }
+
+            if (maniana.length === 0 && tarde.length === 0) {
+                container.innerHTML = html + `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No hay ventas registradas</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const subManiana = calcularSubtotales(maniana);
+            const subTarde = calcularSubtotales(tarde);
+            const totalGeneral = subManiana.total + subTarde.total;
+
+            if (maniana.length > 0) {
+                html += `
+                    <div class="turno-section maniana">
+                        <div class="turno-header maniana">
+                            <span>🌅 Turno Mañana</span>
+                            <span>${maniana.length} venta${maniana.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        ${maniana.map(v => `
+                            <div class="venta-item">
+                                <div class="venta-info">
+                                    <span class="venta-hora">${formatTime(v.timestamp)}</span>
+                                    <span class="venta-tipo ${v.tipo}">${v.tipo === 'tarjeta' ? '💳' : '📱'} ${v.tipo}</span>
+                                    ${v.comprobante ? `<span class="venta-comprobante">#${v.comprobante}</span>` : ''}
+                                </div>
+                                <span class="venta-monto">${formatCurrency(v.monto)}</span>
+                            </div>
+                        `).join('')}
+                        <div class="subtotales">
+                            <div class="subtotal-item">
+                                <div class="subtotal-label tarjeta">💳 Tarjeta</div>
+                                <div class="subtotal-value">${formatCurrency(subManiana.tarjeta)}</div>
+                            </div>
+                            <div class="subtotal-item">
+                                <div class="subtotal-label transferencia">📱 Transferencia</div>
+                                <div class="subtotal-value">${formatCurrency(subManiana.transferencia)}</div>
+                            </div>
+                            <div class="subtotal-item total">
+                                <div class="subtotal-label">Total Mañana</div>
+                                <div class="subtotal-value">${formatCurrency(subManiana.total)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (tarde.length > 0) {
+                html += `
+                    <div class="turno-section tarde">
+                        <div class="turno-header tarde">
+                            <span>🌆 Turno Tarde</span>
+                            <span>${tarde.length} venta${tarde.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        ${tarde.map(v => `
+                            <div class="venta-item">
+                                <div class="venta-info">
+                                    <span class="venta-hora">${formatTime(v.timestamp)}</span>
+                                    <span class="venta-tipo ${v.tipo}">${v.tipo === 'tarjeta' ? '💳' : '📱'} ${v.tipo}</span>
+                                    ${v.comprobante ? `<span class="venta-comprobante">#${v.comprobante}</span>` : ''}
+                                </div>
+                                <span class="venta-monto">${formatCurrency(v.monto)}</span>
+                            </div>
+                        `).join('')}
+                        <div class="subtotales">
+                            <div class="subtotal-item">
+                                <div class="subtotal-label tarjeta">💳 Tarjeta</div>
+                                <div class="subtotal-value">${formatCurrency(subTarde.tarjeta)}</div>
+                            </div>
+                            <div class="subtotal-item">
+                                <div class="subtotal-label transferencia">📱 Transferencia</div>
+                                <div class="subtotal-value">${formatCurrency(subTarde.transferencia)}</div>
+                            </div>
+                            <div class="subtotal-item total">
+                                <div class="subtotal-label">Total Tarde</div>
+                                <div class="subtotal-value">${formatCurrency(subTarde.total)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="total-general">
+                    <div class="total-general-label">TOTAL DEL DÍA</div>
+                    <div class="total-general-value">${formatCurrency(totalGeneral)}</div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        window.setTurno = function(turno) {
+            turnoActual = turno;
+            localStorage.setItem('turno', turno);
+            actualizarUI();
+        };
+
+        function actualizarUI() {
+            document.getElementById('btn-maniana').classList.toggle('active', turnoActual === 'maniana');
+            document.getElementById('btn-tarde').classList.toggle('active', turnoActual === 'tarde');
+
+            const badge = document.getElementById('turno-badge');
+            badge.className = `turno-activo-badge ${turnoActual}`;
+            badge.innerHTML = turnoActual === 'maniana' 
+                ? '<span>🌅</span> Turno actual: Mañana'
+                : '<span>🌆</span> Turno actual: Tarde';
+        }
+
+        window.setTipo = function(tipo) {
+            tipoActual = tipo;
+            document.getElementById('btn-tarjeta').classList.toggle('active', tipo === 'tarjeta');
+            document.getElementById('btn-transferencia').classList.toggle('active', tipo === 'transferencia');
+        };
+
+        window.guardarVenta = async function() {
+            const montoInput = document.getElementById('monto');
+            const comprobanteInput = document.getElementById('comprobante');
+            const monto = parseFloat(montoInput.value);
+
+            if (!monto || monto <= 0) {
+                montoInput.focus();
+                montoInput.style.borderColor = '#c62828';
+                setTimeout(() => montoInput.style.borderColor = '', 2000);
+                return;
+            }
+
+            const btn = document.getElementById('btn-guardar');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                const fecha = new Date().toISOString().split('T')[0];
+                
+                await addDoc(collection(db, 'ventas'), {
+                    fecha: fecha,
+                    timestamp: serverTimestamp(),
+                    turno: turnoActual,
+                    tipo: tipoActual,
+                    monto: monto,
+                    comprobante: comprobanteInput.value.trim()
+                });
+
+                montoInput.value = '';
+                comprobanteInput.value = '';
+                
+                const successMsg = document.getElementById('success-message');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error al guardar:', error);
+                alert('Error al guardar la venta. Intenta de nuevo.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar Venta';
+            }
+        };
+
+        function escucharVentasHoy() {
+            if (unsubHoy) unsubHoy();
+
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha-hoy').textContent = formatFecha(hoy);
+            
+            const q = query(collection(db, 'ventas'), where('fecha', '==', hoy));
+
+            unsubHoy = onSnapshot(q, (snapshot) => {
+                document.getElementById('loading-hoy').style.display = 'none';
+                const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderVentas(ventas, 'ventas-hoy-content', null);
+            }, (error) => {
+                console.error('Error:', error);
+                document.getElementById('loading-hoy').textContent = 'Error al cargar ventas';
+            });
+        }
+
+        window.cargarHistorial = async function() {
+            const fecha = document.getElementById('fecha-historial').value;
+            const container = document.getElementById('historial-content');
+            
+            if (!fecha) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>Selecciona una fecha para ver las ventas</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '<div class="loading">Cargando...</div>';
+
+            if (unsubHistorial) unsubHistorial();
+
+            const q = query(collection(db, 'ventas'), where('fecha', '==', fecha));
+
+            unsubHistorial = onSnapshot(q, (snapshot) => {
+                const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderVentas(ventas, 'historial-content', fecha);
+            }, (error) => {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="error-message">Error al cargar el historial</div>';
+            });
+        };
+
+        window.showTab = function(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.getElementById(`tab-btn-${tab}`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            if (tab === 'hoy') {
+                document.getElementById('loading-hoy').style.display = 'block';
+                document.getElementById('ventas-hoy-content').innerHTML = '';
+                escucharVentasHoy();
+            } else if (tab === 'historial') {
+                const fechaInput = document.getElementById('fecha-historial');
+                if (!fechaInput.value) {
+                    fechaInput.valueAsDate = new Date();
+                    cargarHistorial();
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!turnoActual) {
+                turnoActual = 'maniana';
+                localStorage.setItem('turno', turnoActual);
+            }
+            actualizarUI();
+            escucharVentasHoy();
+            document.getElementById('fecha-historial').valueAsDate = new Date();
+        });
+    </script>
+</body>
+</html>
