@@ -4,18 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ferretería Carnevale · Ventas</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json"/>
+  <meta name="description" content="Registro de ventas diarias por turno · Ferretería Carnevale"/>
   <meta name="theme-color" content="#0f0f11"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Carnevale"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" type="image/svg+xml" href="icon.svg"/>
   <link rel="apple-touch-icon" href="icon-192.png"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg: #0f0f11;
@@ -34,6 +32,7 @@
       --transferencia: #3ecf8e;
       --transferencia-dim: rgba(62,207,142,0.12);
       --danger: #f56c6c;
+      --danger-dim: rgba(245,108,108,0.12);
       --radius: 14px;
     }
 
@@ -57,7 +56,6 @@
       background: var(--bg);
       z-index: 100;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 0;
     }
 
     .header-top {
@@ -67,16 +65,9 @@
       margin-bottom: 16px;
     }
 
-    .brand {
-      font-family: 'Syne', sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
+    .brand { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
     .brand span { color: var(--mañana); }
 
-    /* turno badge */
     .turno-badge {
       display: flex;
       align-items: center;
@@ -96,12 +87,7 @@
     .turno-badge.mañana .dot { background: var(--mañana); }
     .turno-badge.tarde  .dot { background: var(--tarde); }
 
-    /* tabs */
-    .tabs {
-      display: flex;
-      gap: 0;
-      border-bottom: 1px solid var(--border);
-    }
+    .tabs { display: flex; border-bottom: 1px solid var(--border); }
     .tab {
       flex: 1;
       text-align: center;
@@ -116,7 +102,7 @@
     }
     .tab.active { color: var(--text); border-bottom-color: var(--mañana); }
 
-    /* ── TURNO SELECTOR MODAL ── */
+    /* ── OVERLAYS ── */
     .overlay {
       display: none;
       position: fixed;
@@ -138,15 +124,10 @@
     }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-    .sheet h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      margin-bottom: 6px;
-    }
-    .sheet p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .sheet h2 { font-family: 'Syne', sans-serif; font-size: 22px; margin-bottom: 6px; }
+    .sheet > p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
 
     .turno-options { display: flex; flex-direction: column; gap: 12px; }
-
     .turno-option {
       display: flex;
       align-items: center;
@@ -159,17 +140,43 @@
     }
     .turno-option:hover { border-color: var(--muted); }
     .turno-option.mañana:hover, .turno-option.mañana.selected { border-color: var(--mañana); background: var(--mañana-dim); }
-    .turno-option.tarde:hover,  .turno-option.tarde.selected  { border-color: var(--tarde);  background: var(--tarde-dim);  }
-
-    .turno-icon { font-size: 28px; }
+    .turno-option.tarde:hover,  .turno-option.tarde.selected  { border-color: var(--tarde);  background: var(--tarde-dim); }
+    .turno-icon  { font-size: 28px; }
     .turno-label { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
-    .turno-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .turno-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* confirm delete sheet */
+    .confirm-sheet { text-align: center; }
+    .confirm-monto {
+      font-family: 'DM Mono', monospace;
+      font-size: 30px;
+      font-weight: 500;
+      color: var(--danger);
+      margin: 16px 0 6px;
+    }
+    .confirm-info  { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .confirm-actions { display: flex; gap: 12px; }
+    .btn-cancel {
+      flex: 1; padding: 14px;
+      background: var(--surface2); color: var(--text);
+      border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn-danger {
+      flex: 1; padding: 14px;
+      background: var(--danger); color: #fff;
+      border: none; border-radius: var(--radius);
+      font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-danger:active { opacity: .8; }
 
     /* ── SECTIONS ── */
     .section { display: none; padding: 20px; }
     .section.active { display: block; }
 
     /* ── FORM ── */
+    .section-header { padding-top: 4px; margin-bottom: 20px; }
     .form-group { margin-bottom: 16px; }
     label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
 
@@ -188,39 +195,24 @@
     }
     input:focus { border-color: var(--mañana); }
 
-    /* tipo buttons */
     .tipo-btns { display: flex; gap: 10px; }
     .tipo-btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: var(--radius);
-      border: 2px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
+      flex: 1; padding: 14px;
+      border-radius: var(--radius); border: 2px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all .2s;
     }
-    .tipo-btn.tarjeta.selected    { border-color: var(--tarjeta);      color: var(--tarjeta);      background: rgba(108,142,245,.12); }
-    .tipo-btn.debito.selected     { border-color: var(--debito);       color: var(--debito);       background: var(--debito-dim); }
-    .tipo-btn.transferencia.selected { border-color: var(--transferencia); color: var(--transferencia); background: var(--transferencia-dim); }
+    .tipo-btn.tarjeta.selected      { border-color: var(--tarjeta);      color: var(--tarjeta);      background: rgba(108,142,245,.12); }
+    .tipo-btn.debito.selected       { border-color: var(--debito);        color: var(--debito);       background: var(--debito-dim); }
+    .tipo-btn.transferencia.selected{ border-color: var(--transferencia); color: var(--transferencia);background: var(--transferencia-dim); }
 
-    /* submit */
     .btn-primary {
-      width: 100%;
-      padding: 16px;
-      background: var(--mañana);
-      color: #000;
-      border: none;
-      border-radius: var(--radius);
-      font-family: 'Syne', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity .2s, transform .1s;
-      margin-top: 8px;
+      width: 100%; padding: 16px;
+      background: var(--mañana); color: #000;
+      border: none; border-radius: var(--radius);
+      font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s, transform .1s; margin-top: 8px;
     }
     .btn-primary:active { transform: scale(.98); opacity: .9; }
     .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
@@ -231,143 +223,171 @@
       bottom: 90px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
-      background: var(--transferencia);
-      color: #000;
       padding: 12px 24px;
       border-radius: 999px;
-      font-weight: 700;
-      font-size: 14px;
-      opacity: 0;
-      transition: all .3s;
-      pointer-events: none;
-      white-space: nowrap;
-      z-index: 300;
+      font-weight: 700; font-size: 14px;
+      opacity: 0; transition: all .3s;
+      pointer-events: none; white-space: nowrap; z-index: 300;
     }
+    .toast.success { background: var(--transferencia); color: #000; }
+    .toast.deleted  { background: var(--danger);        color: #fff; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* index warning */
+    .index-warning {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--debito);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 12px; color: var(--debito);
+      margin-bottom: 16px; line-height: 1.6;
+    }
+    .index-warning.show { display: block; }
+    .index-warning a { color: inherit; }
+
     /* ── VENTAS LIST ── */
-    .section-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .section-date {
-      font-size: 12px;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      margin-bottom: 20px;
-    }
+    .section-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .section-date  { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 20px; }
 
-    .turno-block { margin-bottom: 28px; }
-
-    .turno-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+    /* filtro turno */
+    .filtro-turno { display: flex; gap: 8px; margin-bottom: 20px; }
+    .filtro-btn {
+      padding: 6px 14px;
+      border-radius: 999px; border: 1.5px solid var(--border);
+      background: transparent; color: var(--muted);
+      font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace;
+      cursor: pointer; transition: all .2s;
     }
+    .filtro-btn.active-all    { border-color: var(--mañana); color: var(--mañana); background: var(--mañana-dim); }
+    .filtro-btn.active-mañana { border-color: var(--mañana); color: var(--mañana); background: var(--mañana-dim); }
+    .filtro-btn.active-tarde  { border-color: var(--tarde);  color: var(--tarde);  background: var(--tarde-dim); }
+
+    /* gráfico */
+    .chart-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+    }
+    .chart-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    .chart-inner { display: flex; align-items: center; gap: 24px; }
+    .chart-canvas-wrap { width: 110px; height: 110px; flex-shrink: 0; }
+    .chart-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .legend-item { display: flex; align-items: center; justify-content: space-between; }
+    .legend-left { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-val  { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+
+    /* exportar */
+    .export-row { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    .btn-export {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 999px; color: var(--text);
+      font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: border-color .2s, color .2s;
+    }
+    .btn-export:hover { border-color: var(--transferencia); color: var(--transferencia); }
+
+    /* turno block */
+    .turno-block  { margin-bottom: 28px; }
+    .turno-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
     .turno-pill {
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 11px; font-weight: 700;
       font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 4px 10px;
-      border-radius: 999px;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 4px 10px; border-radius: 999px;
     }
     .turno-pill.mañana { background: var(--mañana-dim); color: var(--mañana); }
-    .turno-pill.tarde  { background: var(--tarde-dim);  color: var(--tarde);  }
+    .turno-pill.tarde  { background: var(--tarde-dim);  color: var(--tarde); }
 
-    .venta-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+    /* venta card */
+    .venta-card-wrap {
+      position: relative; margin-bottom: 8px;
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .venta-card-delete-bg {
+      position: absolute; inset: 0;
+      background: var(--danger-dim); border: 1px solid var(--danger);
       border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      animation: fadeIn .2s ease;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 20px; color: var(--danger); font-size: 18px;
+    }
+    .venta-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      animation: fadeIn .2s ease; position: relative;
+      touch-action: pan-y;
     }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
     .venta-left { display: flex; flex-direction: column; gap: 3px; }
     .venta-tipo {
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 11px; font-weight: 700;
       font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: .8px;
+      text-transform: uppercase; letter-spacing: .8px;
     }
-    .venta-tipo.tarjeta      { color: var(--tarjeta); }
-    .venta-tipo.debito       { color: var(--debito); }
+    .venta-tipo.tarjeta       { color: var(--tarjeta); }
+    .venta-tipo.debito        { color: var(--debito); }
     .venta-tipo.transferencia { color: var(--transferencia); }
-
-    .venta-hora { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .venta-hora        { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
     .venta-comprobante { font-size: 11px; color: var(--muted); }
 
-    .venta-monto {
-      font-family: 'DM Mono', monospace;
-      font-size: 20px;
-      font-weight: 500;
-      white-space: nowrap;
+    .venta-right { display: flex; align-items: center; gap: 10px; }
+    .venta-monto { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; white-space: nowrap; }
+    .venta-del-btn {
+      background: none; border: none;
+      color: var(--muted); font-size: 16px;
+      cursor: pointer; padding: 4px 2px;
+      transition: color .2s; line-height: 1;
     }
+    .venta-del-btn:hover { color: var(--danger); }
 
     /* totales */
     .totales-box {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-top: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-top: 8px;
     }
-    .total-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      font-size: 14px;
-    }
+    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; }
     .total-row .label { color: var(--muted); }
     .total-row .value { font-family: 'DM Mono', monospace; font-weight: 500; }
-    .total-row.grand {
-      border-top: 1px solid var(--border);
-      margin-top: 6px;
-      padding-top: 12px;
-    }
+    .total-row.grand  { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 12px; }
     .total-row.grand .label { font-weight: 700; color: var(--text); font-size: 15px; }
     .total-row.grand .value { font-size: 18px; color: var(--mañana); }
 
-    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
-
     .total-general-box {
-      background: var(--surface2);
-      border: 2px solid var(--mañana);
-      border-radius: var(--radius);
-      padding: 20px;
-      text-align: center;
+      background: var(--surface2); border: 2px solid var(--mañana);
+      border-radius: var(--radius); padding: 20px; text-align: center; margin-top: 8px;
     }
     .total-general-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     .total-general-value { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: var(--mañana); }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+    .empty-icon  { font-size: 36px; margin-bottom: 10px; }
 
-    /* date picker */
     .date-picker-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
     .date-picker-row input { flex: 1; font-size: 15px; padding: 12px 14px; }
 
-    /* loader */
     .loader { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
 
-    /* ── NAV ── (replaced by tabs above header) */
+    /* ── FOOTER ── */
+    .footer-credit {
+      text-align: center;
+      padding: 24px 20px 8px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .3px;
+      line-height: 1.7;
+    }
+    .footer-credit a {
+      color: var(--mañana);
+      text-decoration: none;
+      font-weight: 600;
+      opacity: .85;
+      transition: opacity .2s;
+    }
+    .footer-credit a:hover { opacity: 1; }
   </style>
 </head>
 <body>
@@ -396,13 +416,26 @@
   </div>
 </div>
 
+<!-- CONFIRM DELETE OVERLAY -->
+<div class="overlay" id="deleteOverlay">
+  <div class="sheet confirm-sheet">
+    <h2>Eliminar venta</h2>
+    <div class="confirm-monto" id="confirmMonto"></div>
+    <div class="confirm-info"  id="confirmInfo"></div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeDeleteOverlay()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmarEliminar()">🗑️ Eliminar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
-<div class="toast" id="toast">✓ Venta guardada</div>
+<div class="toast" id="toast"></div>
 
 <!-- HEADER -->
 <header>
   <div class="header-top">
-    <div class="brand">Ferretería Carne<span>vale</span></div>
+    <div class="brand">Ferretería <span>Carnevale</span></div>
     <div class="turno-badge" id="turnoBadge" onclick="openTurnoOverlay()">
       <div class="dot"></div>
       <span id="turnoLabel">—</span>
@@ -410,23 +443,24 @@
   </div>
   <div class="tabs">
     <div class="tab active" onclick="showTab('cargar')">➕ Cargar</div>
-    <div class="tab" onclick="showTab('hoy')">📋 Hoy</div>
-    <div class="tab" onclick="showTab('historial')">📊 Historial</div>
+    <div class="tab"        onclick="showTab('hoy')">📋 Hoy</div>
+    <div class="tab"        onclick="showTab('historial')">📊 Historial</div>
   </div>
 </header>
 
 <!-- CARGAR VENTA -->
 <div class="section active" id="sec-cargar">
-  <br>
-  <div class="section-title">Nueva venta</div>
-  <p class="section-date" id="fechaHoy"></p>
+  <div class="section-header">
+    <div class="section-title">Nueva venta</div>
+    <p class="section-date" id="fechaHoy"></p>
+  </div>
 
   <div class="form-group">
     <label>Tipo de pago</label>
     <div class="tipo-btns">
-      <button class="tipo-btn tarjeta selected" id="btn-tarjeta" onclick="selectTipo('tarjeta')">💳 Tarjeta</button>
-      <button class="tipo-btn debito" id="btn-debito" onclick="selectTipo('debito')">🏧 Débito</button>
-      <button class="tipo-btn transferencia" id="btn-transferencia" onclick="selectTipo('transferencia')">📲 Transferencia</button>
+      <button class="tipo-btn tarjeta selected" id="btn-tarjeta"       onclick="selectTipo('tarjeta')">💳 Tarjeta</button>
+      <button class="tipo-btn debito"           id="btn-debito"        onclick="selectTipo('debito')">🏧 Débito</button>
+      <button class="tipo-btn transferencia"    id="btn-transferencia" onclick="selectTipo('transferencia')">📲 Transferencia</button>
     </div>
   </div>
 
@@ -445,25 +479,41 @@
 
 <!-- HOY -->
 <div class="section" id="sec-hoy">
-  <br>
-  <div class="section-title">Ventas de hoy</div>
-  <p class="section-date" id="fechaHoyLabel"></p>
+  <div class="section-header">
+    <div class="section-title">Ventas de hoy</div>
+    <p class="section-date" id="fechaHoyLabel"></p>
+  </div>
+
+  <div class="filtro-turno">
+    <button class="filtro-btn active-all" id="filtro-all"    onclick="setFiltroHoy('all')">Todos</button>
+    <button class="filtro-btn"            id="filtro-mañana" onclick="setFiltroHoy('mañana')">☀️ Mañana</button>
+    <button class="filtro-btn"            id="filtro-tarde"  onclick="setFiltroHoy('tarde')">🌆 Tarde</button>
+  </div>
+
+  <div class="index-warning" id="indexWarning">
+    ⚠️ Falta el índice compuesto <code>fecha + timestamp</code> en Firestore. Resultados sin orden de tiempo.
+    <a href="https://console.firebase.google.com" target="_blank">Ir a Firebase Console →</a>
+  </div>
+
   <div id="listHoy"><div class="loader">Cargando...</div></div>
 </div>
 
 <!-- HISTORIAL -->
 <div class="section" id="sec-historial">
-  <br>
-  <div class="section-title">Historial</div>
+  <div class="section-header">
+    <div class="section-title">Historial</div>
+  </div>
   <div class="date-picker-row">
     <input type="date" id="fechaHistorial" onchange="cargarHistorial()"/>
   </div>
-  <div id="listHistorial"><div class="empty-state"><div class="empty-icon">📅</div>Elegí una fecha para ver las ventas</div></div>
-</div>
 
-<!-- CRÉDITOS AFM -->
-<div style="text-align:center; padding: 16px 20px 8px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace;">
-  Desarrollado por <a href="https://afmsolutions.com.ar" target="_blank" rel="noopener" style="color: var(--mañana); text-decoration: none; font-weight: 600;">AFM Solutions</a>
+  <div class="export-row" id="exportRow" style="display:none">
+    <button class="btn-export" onclick="exportarCSV()">⬇️ Exportar CSV</button>
+  </div>
+
+  <div id="listHistorial">
+    <div class="empty-state"><div class="empty-icon">📅</div>Elegí una fecha para ver las ventas</div>
+  </div>
 </div>
 
 <!-- Firebase SDK (compat) -->
@@ -472,7 +522,7 @@
 
 <script>
 // ══════════════════════════════════════════
-//  FIREBASE CONFIG — reemplazá estos valores
+//  FIREBASE CONFIG
 // ══════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyDFVZ99Hqs9xvfJPmyxARaX8ZlndF5fpMM",
@@ -489,36 +539,55 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ── STATE ──
-let turnoActivo = localStorage.getItem('turno') || null;
-let tipoSeleccionado = 'tarjeta';
-let unsubHoy = null;
+let turnoActivo          = null;
+let tipoSeleccionado     = 'tarjeta';
+let unsubHoy             = null;
+let unsubHistorial       = null;
+let filtroHoy            = 'all';
+let ventasHoyCache       = [];
+let ventasHistorialCache = [];
+let ventaAEliminarId     = null;
+let chartHoy             = null;
+let chartHistorial       = null;
 
 // ── INIT ──
 function init() {
   const hoy = fechaHoy();
-  document.getElementById('fechaHoy').textContent = formatFechaLarga(hoy);
+  document.getElementById('fechaHoy').textContent      = formatFechaLarga(hoy);
   document.getElementById('fechaHoyLabel').textContent = formatFechaLarga(hoy);
-  document.getElementById('fechaHistorial').value = hoy;
+  document.getElementById('fechaHistorial').value      = hoy;
 
-  if (!turnoActivo) {
-    openTurnoOverlay();
-  } else {
+  // FIX #4 + #9: validar turno guardado y verificar que sea del día de hoy
+  const turnoGuardado = localStorage.getItem('turno');
+  const fechaGuardada = localStorage.getItem('turnoFecha');
+
+  if (turnoGuardado && ['mañana','tarde'].includes(turnoGuardado) && fechaGuardada === hoy) {
+    turnoActivo = turnoGuardado;
     updateTurnoBadge();
+  } else {
+    localStorage.removeItem('turno');
+    localStorage.removeItem('turnoFecha');
+    openTurnoOverlay();
   }
 
-  // realtime hoy
   suscribirHoy();
 }
 
-// ── FECHAS ──
+// ── FECHAS ── FIX #5: usar hora local, no UTC
 function fechaHoy() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dia}`;
 }
+
 function formatFechaLarga(str) {
   const [y,m,d] = str.split('-');
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
 }
+
 function formatHora(ts) {
   if (!ts) return '';
   const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -529,17 +598,21 @@ function formatHora(ts) {
 function openTurnoOverlay() {
   document.getElementById('turnoOverlay').classList.add('show');
 }
+
 function setTurno(t) {
+  if (!['mañana','tarde'].includes(t)) return; // FIX #9: validar
   turnoActivo = t;
   localStorage.setItem('turno', t);
+  localStorage.setItem('turnoFecha', fechaHoy()); // FIX #4: guardar fecha
   updateTurnoBadge();
   document.getElementById('turnoOverlay').classList.remove('show');
 }
+
 function updateTurnoBadge() {
   const badge = document.getElementById('turnoBadge');
   const label = document.getElementById('turnoLabel');
-  badge.className = 'turno-badge ' + turnoActivo;
-  label.textContent = turnoActivo === 'mañana' ? '☀️ Mañana' : '🌆 Tarde';
+  badge.className    = 'turno-badge ' + turnoActivo;
+  label.textContent  = turnoActivo === 'mañana' ? '☀️ Mañana' : '🌆 Tarde';
 }
 
 // ── TABS ──
@@ -549,120 +622,177 @@ function showTab(name) {
   document.getElementById('sec-' + name).classList.add('active');
   const idx = ['cargar','hoy','historial'].indexOf(name);
   document.querySelectorAll('.tab')[idx].classList.add('active');
-
   if (name === 'historial') cargarHistorial();
 }
 
 // ── TIPO ──
 function selectTipo(t) {
   tipoSeleccionado = t;
-  document.getElementById('btn-tarjeta').classList.toggle('selected', t === 'tarjeta');
-  document.getElementById('btn-debito').classList.toggle('selected', t === 'debito');
+  document.getElementById('btn-tarjeta').classList.toggle('selected',       t === 'tarjeta');
+  document.getElementById('btn-debito').classList.toggle('selected',        t === 'debito');
   document.getElementById('btn-transferencia').classList.toggle('selected', t === 'transferencia');
 }
 
 // ── GUARDAR ──
 async function guardarVenta() {
-  const monto = parseFloat(document.getElementById('monto').value);
+  const monto       = parseFloat(document.getElementById('monto').value);
   const comprobante = document.getElementById('comprobante').value.trim();
 
-  if (!monto || monto <= 0) {
-    document.getElementById('monto').focus();
-    return;
-  }
+  if (!monto || monto <= 0) { document.getElementById('monto').focus(); return; }
   if (!turnoActivo) { openTurnoOverlay(); return; }
 
   const btn = document.getElementById('btnGuardar');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Guardando...';
 
   try {
     await db.collection('ventas').add({
-      fecha: fechaHoy(),
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      turno: turnoActivo,
-      tipo: tipoSeleccionado,
-      monto: monto,
+      fecha:       fechaHoy(),
+      timestamp:   firebase.firestore.FieldValue.serverTimestamp(),
+      turno:       turnoActivo,
+      tipo:        tipoSeleccionado,
+      monto:       monto,
       comprobante: comprobante || ''
     });
-
-    document.getElementById('monto').value = '';
+    document.getElementById('monto').value       = '';
     document.getElementById('comprobante').value = '';
-    showToast();
+    showToast('✓ Venta guardada', 'success');
   } catch(e) {
     alert('Error al guardar: ' + e.message);
   }
 
-  btn.disabled = false;
+  btn.disabled    = false;
   btn.textContent = 'Guardar venta';
 }
 
 // ── TOAST ──
-function showToast() {
+function showToast(msg, tipo = 'success') {
   const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = `toast ${tipo}`;
+  void t.offsetWidth; // forzar reflow para re-animar
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── SUSCRIBIR HOY (realtime) ──
+// ── FILTRO HOY ── FIX #6
+function setFiltroHoy(f) {
+  filtroHoy = f;
+  document.getElementById('filtro-all').className    = 'filtro-btn' + (f === 'all'    ? ' active-all'    : '');
+  document.getElementById('filtro-mañana').className = 'filtro-btn' + (f === 'mañana' ? ' active-mañana' : '');
+  document.getElementById('filtro-tarde').className  = 'filtro-btn' + (f === 'tarde'  ? ' active-tarde'  : '');
+  renderVentas(ventasHoyCache, 'listHoy', null, 'hoy');
+}
+
+// ── SUSCRIBIR HOY ── FIX #7
 function suscribirHoy() {
   if (unsubHoy) unsubHoy();
   unsubHoy = db.collection('ventas')
     .where('fecha', '==', fechaHoy())
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
+      document.getElementById('indexWarning').classList.remove('show');
       const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
-      renderVentas(ventas, 'listHoy');
+      ventasHoyCache = ventas;
+      renderVentas(ventas, 'listHoy', null, 'hoy');
     }, err => {
-      // índice no creado aún
+      console.warn('Índice compuesto no disponible:', err.message);
+      document.getElementById('indexWarning').classList.add('show'); // FIX #7: aviso visible
       db.collection('ventas')
         .where('fecha', '==', fechaHoy())
         .get().then(snap => {
           const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
-          renderVentas(ventas, 'listHoy');
+          ventasHoyCache = ventas;
+          renderVentas(ventas, 'listHoy', null, 'hoy');
         });
     });
 }
 
 // ── CARGAR HISTORIAL ──
-async function cargarHistorial() {
+// Si la fecha es hoy → onSnapshot (realtime). Si es pasada → get() una vez.
+function cargarHistorial() {
   const fecha = document.getElementById('fechaHistorial').value;
   if (!fecha) return;
-  document.getElementById('listHistorial').innerHTML = '<div class="loader">Cargando...</div>';
-  try {
-    const snap = await db.collection('ventas')
-      .where('fecha', '==', fecha)
-      .orderBy('timestamp', 'asc')
-      .get();
+
+  // cancelar listener anterior si existía
+  if (unsubHistorial) { unsubHistorial(); unsubHistorial = null; }
+
+  document.getElementById('listHistorial').innerHTML  = '<div class="loader">Cargando...</div>';
+  document.getElementById('exportRow').style.display  = 'none';
+
+  const esHoy = fecha === fechaHoy();
+  const query = db.collection('ventas').where('fecha', '==', fecha).orderBy('timestamp', 'asc');
+
+  function handleSnap(snap) {
     const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderVentas(ventas, 'listHistorial', fecha);
-  } catch(e) {
+    ventasHistorialCache = ventas;
+    renderVentas(ventas, 'listHistorial', fecha, 'historial');
+    if (ventas.length > 0) document.getElementById('exportRow').style.display = 'flex';
+    else document.getElementById('exportRow').style.display = 'none';
+  }
+
+  function handleErr(e) {
+    console.warn('Índice no disponible para historial, fallback sin orden:', e.message);
     // fallback sin orderBy
-    const snap = await db.collection('ventas').where('fecha', '==', fecha).get();
-    const ventas = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderVentas(ventas, 'listHistorial', fecha);
+    db.collection('ventas').where('fecha', '==', fecha).get()
+      .then(handleSnap)
+      .catch(e2 => {
+        document.getElementById('listHistorial').innerHTML =
+          `<div class="empty-state"><div class="empty-icon">⚠️</div>Error al cargar: ${e2.message}</div>`;
+      });
+  }
+
+  if (esHoy) {
+    // realtime para hoy
+    unsubHistorial = query.onSnapshot(handleSnap, handleErr);
+  } else {
+    // una sola lectura para fechas pasadas
+    query.get().then(handleSnap).catch(handleErr);
   }
 }
 
-// ── RENDER ──
-function renderVentas(ventas, containerId, fechaLabel) {
+// ── RENDER ── FIX #6 (filtro) + #11 (gráfico dona)
+function renderVentas(ventasAll, containerId, fechaLabel, contexto) {
   const el = document.getElementById(containerId);
 
+  // aplicar filtro de turno (solo en "hoy")
+  const ventas = (contexto === 'hoy' && filtroHoy !== 'all')
+    ? ventasAll.filter(v => v.turno === filtroHoy)
+    : ventasAll;
+
   if (ventas.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🗒️</div>No hay ventas registradas</div>`;
+    if (containerId === 'listHoy') document.getElementById('indexWarning').classList.remove('show');
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay ventas registradas</div>`;
     return;
   }
 
   const mañana = ventas.filter(v => v.turno === 'mañana');
-  const tarde   = ventas.filter(v => v.turno === 'tarde');
+  const tarde  = ventas.filter(v => v.turno === 'tarde');
 
-  let html = '';
+  const totalTarjeta = ventas.filter(v=>v.tipo==='tarjeta').reduce((s,v)=>s+(v.monto||0),0);
+  const totalDebito  = ventas.filter(v=>v.tipo==='debito').reduce((s,v)=>s+(v.monto||0),0);
+  const totalTransf  = ventas.filter(v=>v.tipo==='transferencia').reduce((s,v)=>s+(v.monto||0),0);
+  const totalGen     = totalTarjeta + totalDebito + totalTransf;
+
+  const chartId = `chart-${contexto}`;
+
+  // FIX #11: gráfico de dona de distribución
+  let html = `
+    <div class="chart-wrap">
+      <div class="chart-title">Distribución por medio de pago</div>
+      <div class="chart-inner">
+        <div class="chart-canvas-wrap"><canvas id="${chartId}"></canvas></div>
+        <div class="chart-legend">
+          ${totalTarjeta > 0 ? `<div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:var(--tarjeta)"></div>💳 Tarjeta</div><div class="legend-val" style="color:var(--tarjeta)">${formatMonto(totalTarjeta)}</div></div>` : ''}
+          ${totalDebito  > 0 ? `<div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:var(--debito)"></div>🏧 Débito</div><div class="legend-val" style="color:var(--debito)">${formatMonto(totalDebito)}</div></div>` : ''}
+          ${totalTransf  > 0 ? `<div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:var(--transferencia)"></div>📲 Transf.</div><div class="legend-val" style="color:var(--transferencia)">${formatMonto(totalTransf)}</div></div>` : ''}
+        </div>
+      </div>
+    </div>`;
 
   if (mañana.length > 0) html += renderTurnoBlock(mañana, 'mañana');
-  if (tarde.length > 0)  html += renderTurnoBlock(tarde,  'tarde');
+  if (tarde.length  > 0) html += renderTurnoBlock(tarde,  'tarde');
 
-  // total general
-  const totalGen = ventas.reduce((s, v) => s + (v.monto || 0), 0);
   html += `
     <div class="total-general-box">
       <div class="total-general-label">Total del día</div>
@@ -670,28 +800,72 @@ function renderVentas(ventas, containerId, fechaLabel) {
     </div>`;
 
   el.innerHTML = html;
+
+  // montar Chart.js después de inyectar el canvas en el DOM
+  const chartData   = [];
+  const chartColors = [];
+  const chartLabels = [];
+  if (totalTarjeta > 0) { chartData.push(totalTarjeta); chartColors.push('#6c8ef5'); chartLabels.push('Tarjeta'); }
+  if (totalDebito  > 0) { chartData.push(totalDebito);  chartColors.push('#fb923c'); chartLabels.push('Débito'); }
+  if (totalTransf  > 0) { chartData.push(totalTransf);  chartColors.push('#3ecf8e'); chartLabels.push('Transf.'); }
+
+  const ctx = document.getElementById(chartId);
+  if (ctx) {
+    if (contexto === 'hoy'      && chartHoy)       chartHoy.destroy();
+    if (contexto === 'historial'&& chartHistorial)  chartHistorial.destroy();
+    const newChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: chartLabels,
+        datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0, hoverOffset: 4 }]
+      },
+      options: {
+        cutout: '72%',
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        animation: { duration: 400 }
+      }
+    });
+    if (contexto === 'hoy')       chartHoy       = newChart;
+    if (contexto === 'historial') chartHistorial = newChart;
+  }
 }
 
+// FIX #3: renderizar cards con botón eliminar
 function renderTurnoBlock(ventas, turno) {
   const emoji = turno === 'mañana' ? '🌅' : '🌆';
   const label = turno === 'mañana' ? 'Turno Mañana' : 'Turno Tarde';
 
-  const totalTarjeta = ventas.filter(v=>v.tipo==='tarjeta').reduce((s,v)=>s+v.monto,0);
-  const totalDebito  = ventas.filter(v=>v.tipo==='debito').reduce((s,v)=>s+v.monto,0);
-  const totalTransf  = ventas.filter(v=>v.tipo==='transferencia').reduce((s,v)=>s+v.monto,0);
+  const totalTarjeta = ventas.filter(v=>v.tipo==='tarjeta').reduce((s,v)=>s+(v.monto||0),0);
+  const totalDebito  = ventas.filter(v=>v.tipo==='debito').reduce((s,v)=>s+(v.monto||0),0);
+  const totalTransf  = ventas.filter(v=>v.tipo==='transferencia').reduce((s,v)=>s+(v.monto||0),0);
   const totalTurno   = totalTarjeta + totalDebito + totalTransf;
 
   const tipoLabel = t => ({ tarjeta: '💳 Tarjeta', debito: '🏧 Débito', transferencia: '📲 Transferencia' }[t] || t);
 
-  let cards = ventas.map(v => `
-    <div class="venta-card">
-      <div class="venta-left">
-        <span class="venta-tipo ${v.tipo}">${tipoLabel(v.tipo)}</span>
-        <span class="venta-hora">${formatHora(v.timestamp)}</span>
-        ${v.comprobante ? `<span class="venta-comprobante">Comp. #${v.comprobante}</span>` : ''}
-      </div>
-      <div class="venta-monto">${formatMonto(v.monto)}</div>
-    </div>`).join('');
+  const cards = ventas.map(v => {
+    const hora  = formatHora(v.timestamp);
+    const monto = (v.monto || 0);
+    return `
+      <div class="venta-card-wrap">
+        <div class="venta-card-delete-bg">🗑️</div>
+        <div class="venta-card"
+          data-id="${v.id}"
+          data-monto="${monto}"
+          data-tipo="${v.tipo}"
+          data-turno="${v.turno}"
+          data-hora="${hora}">
+          <div class="venta-left">
+            <span class="venta-tipo ${v.tipo}">${tipoLabel(v.tipo)}</span>
+            <span class="venta-hora">${hora}</span>
+            ${v.comprobante ? `<span class="venta-comprobante">Comp. #${v.comprobante}</span>` : ''}
+          </div>
+          <div class="venta-right">
+            <div class="venta-monto">${formatMonto(monto)}</div>
+            <button class="venta-del-btn" title="Eliminar" onclick="pedirEliminarById('${v.id}','${monto}','${v.tipo}','${v.turno}','${hora}')">✕</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 
   return `
     <div class="turno-block">
@@ -708,11 +882,73 @@ function renderTurnoBlock(ventas, turno) {
     </div>`;
 }
 
+// ── ELIMINAR ── FIX #3
+function pedirEliminarById(id, monto, tipo, turno, hora) {
+  if (!id) return;
+  ventaAEliminarId = id;
+  document.getElementById('confirmMonto').textContent = formatMonto(parseFloat(monto));
+  const tLabel = { tarjeta: '💳 Tarjeta', debito: '🏧 Débito', transferencia: '📲 Transferencia' }[tipo] || tipo;
+  const tnLabel = turno === 'mañana' ? '☀️ Mañana' : '🌆 Tarde';
+  document.getElementById('confirmInfo').textContent = `${tLabel} · ${tnLabel}${hora ? ' · ' + hora : ''}`;
+  document.getElementById('deleteOverlay').classList.add('show');
+}
+
+function closeDeleteOverlay() {
+  document.getElementById('deleteOverlay').classList.remove('show');
+  ventaAEliminarId = null;
+}
+
+async function confirmarEliminar() {
+  if (!ventaAEliminarId) return;
+  const id = ventaAEliminarId;
+  closeDeleteOverlay();
+  try {
+    await db.collection('ventas').doc(id).delete();
+    showToast('🗑️ Venta eliminada', 'deleted');
+    // si estamos en historial (no realtime), recargar
+    if (document.getElementById('sec-historial').classList.contains('active')) {
+      cargarHistorial();
+    }
+  } catch(e) {
+    alert('Error al eliminar: ' + e.message);
+  }
+}
+
+// ── EXPORTAR CSV ── FIX #10
+function exportarCSV() {
+  if (!ventasHistorialCache.length) return;
+  const fecha    = document.getElementById('fechaHistorial').value;
+  const tLabel   = t => ({ tarjeta: 'Tarjeta', debito: 'Debito', transferencia: 'Transferencia' }[t] || t);
+
+  const headers = ['Fecha','Turno','Tipo de pago','Monto','Comprobante','Hora'];
+  const rows    = ventasHistorialCache.map(v => [
+    v.fecha,
+    v.turno === 'mañana' ? 'Mañana' : 'Tarde',
+    tLabel(v.tipo),
+    (v.monto || 0).toFixed(2).replace('.', ','),
+    v.comprobante || '',
+    formatHora(v.timestamp)
+  ]);
+
+  // fila de total al final
+  const total = ventasHistorialCache.reduce((s,v) => s + (v.monto||0), 0);
+  rows.push(['','','TOTAL', total.toFixed(2).replace('.', ','), '', '']);
+
+  const csv  = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM para Excel
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `ferreteria-carnevale-ventas-${fecha}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function formatMonto(n) {
   return '$' + (n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// enter en monto → foco comprobante
+// ── KEYBOARD ──
 document.getElementById('monto').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('comprobante').focus();
 });
@@ -720,17 +956,21 @@ document.getElementById('comprobante').addEventListener('keydown', e => {
   if (e.key === 'Enter') guardarVenta();
 });
 
-// ── SERVICE WORKER ──
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(r => console.log('SW registrado:', r.scope))
-      .catch(e => console.warn('SW error:', e));
-  });
-}
-
 // ── START ──
 init();
+</script>
+
+<div class="footer-credit">
+  Desarrollado por <a href="https://afmsolutions.com.ar" target="_blank" rel="noopener">AFM Solutions</a><br>
+  Software a medida · <a href="https://afmsolutions.com.ar" target="_blank" rel="noopener">afmsolutions.com.ar</a>
+</div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW:', err));
+    });
+  }
 </script>
 </body>
 </html>
