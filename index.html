@@ -18,6 +18,8 @@
       --tarde: #6c8ef5;
       --tarde-dim: rgba(108,142,245,0.12);
       --tarjeta: #6c8ef5;
+      --debito: #fb923c;
+      --debito-dim: rgba(251,146,60,0.12);
       --transferencia: #3ecf8e;
       --transferencia-dim: rgba(62,207,142,0.12);
       --danger: #f56c6c;
@@ -191,6 +193,7 @@
       transition: all .2s;
     }
     .tipo-btn.tarjeta.selected    { border-color: var(--tarjeta);      color: var(--tarjeta);      background: rgba(108,142,245,.12); }
+    .tipo-btn.debito.selected     { border-color: var(--debito);       color: var(--debito);       background: var(--debito-dim); }
     .tipo-btn.transferencia.selected { border-color: var(--transferencia); color: var(--transferencia); background: var(--transferencia-dim); }
 
     /* submit */
@@ -288,6 +291,7 @@
       letter-spacing: .8px;
     }
     .venta-tipo.tarjeta      { color: var(--tarjeta); }
+    .venta-tipo.debito       { color: var(--debito); }
     .venta-tipo.transferencia { color: var(--transferencia); }
 
     .venta-hora { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
@@ -410,6 +414,7 @@
     <label>Tipo de pago</label>
     <div class="tipo-btns">
       <button class="tipo-btn tarjeta selected" id="btn-tarjeta" onclick="selectTipo('tarjeta')">💳 Tarjeta</button>
+      <button class="tipo-btn debito" id="btn-debito" onclick="selectTipo('debito')">🏧 Débito</button>
       <button class="tipo-btn transferencia" id="btn-transferencia" onclick="selectTipo('transferencia')">📲 Transferencia</button>
     </div>
   </div>
@@ -536,6 +541,7 @@ function showTab(name) {
 function selectTipo(t) {
   tipoSeleccionado = t;
   document.getElementById('btn-tarjeta').classList.toggle('selected', t === 'tarjeta');
+  document.getElementById('btn-debito').classList.toggle('selected', t === 'debito');
   document.getElementById('btn-transferencia').classList.toggle('selected', t === 'transferencia');
 }
 
@@ -655,13 +661,16 @@ function renderTurnoBlock(ventas, turno) {
   const label = turno === 'mañana' ? 'Turno Mañana' : 'Turno Tarde';
 
   const totalTarjeta = ventas.filter(v=>v.tipo==='tarjeta').reduce((s,v)=>s+v.monto,0);
+  const totalDebito  = ventas.filter(v=>v.tipo==='debito').reduce((s,v)=>s+v.monto,0);
   const totalTransf  = ventas.filter(v=>v.tipo==='transferencia').reduce((s,v)=>s+v.monto,0);
-  const totalTurno   = totalTarjeta + totalTransf;
+  const totalTurno   = totalTarjeta + totalDebito + totalTransf;
+
+  const tipoLabel = t => ({ tarjeta: '💳 Tarjeta', debito: '🏧 Débito', transferencia: '📲 Transferencia' }[t] || t);
 
   let cards = ventas.map(v => `
     <div class="venta-card">
       <div class="venta-left">
-        <span class="venta-tipo ${v.tipo}">${v.tipo === 'tarjeta' ? '💳 Tarjeta' : '📲 Transferencia'}</span>
+        <span class="venta-tipo ${v.tipo}">${tipoLabel(v.tipo)}</span>
         <span class="venta-hora">${formatHora(v.timestamp)}</span>
         ${v.comprobante ? `<span class="venta-comprobante">Comp. #${v.comprobante}</span>` : ''}
       </div>
@@ -676,6 +685,7 @@ function renderTurnoBlock(ventas, turno) {
       ${cards}
       <div class="totales-box">
         ${totalTarjeta > 0 ? `<div class="total-row"><span class="label">💳 Tarjeta</span><span class="value" style="color:var(--tarjeta)">${formatMonto(totalTarjeta)}</span></div>` : ''}
+        ${totalDebito  > 0 ? `<div class="total-row"><span class="label">🏧 Débito</span><span class="value" style="color:var(--debito)">${formatMonto(totalDebito)}</span></div>` : ''}
         ${totalTransf  > 0 ? `<div class="total-row"><span class="label">📲 Transferencia</span><span class="value" style="color:var(--transferencia)">${formatMonto(totalTransf)}</span></div>` : ''}
         <div class="total-row grand"><span class="label">Total ${label}</span><span class="value">${formatMonto(totalTurno)}</span></div>
       </div>
