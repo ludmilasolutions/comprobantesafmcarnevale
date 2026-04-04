@@ -1,11 +1,18 @@
-const CACHE = 'carnevale-v1';
+const CACHE = 'carnevale-v2';
 const ASSETS = [
   './',
   './index.html',
+  './styles.css',
+  './app.js',
+  './ventas.js',
+  './presupuesto.js',
+  './arca.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js'
 ];
